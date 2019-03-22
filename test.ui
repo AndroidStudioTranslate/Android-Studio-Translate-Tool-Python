@@ -208,8 +208,7 @@
      </widget>
     </item>
     <item row="1" column="6" colspan="2">
-     <widget class="QListView" name="listView_file">
-     </widget>
+     <widget class="QListView" name="listView_file"/>
     </item>
     <item row="0" column="2">
      <widget class="QPushButton" name="pushButton_browser">
@@ -239,6 +238,23 @@
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu1">
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <addaction name="action_package"/>
+    <addaction name="separator"/>
+    <addaction name="action_exit"/>
+   </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>帮助</string>
+    </property>
+    <addaction name="action_git"/>
+    <addaction name="action_about"/>
+   </widget>
+   <addaction name="menu1"/>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="enabled">
@@ -251,6 +267,26 @@
     <string/>
    </property>
   </widget>
+  <action name="action_package">
+   <property name="text">
+    <string>打包</string>
+   </property>
+  </action>
+  <action name="action_exit">
+   <property name="text">
+    <string>退出</string>
+   </property>
+  </action>
+  <action name="action_git">
+   <property name="text">
+    <string>开源地址</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>关于</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

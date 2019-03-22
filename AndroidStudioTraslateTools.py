@@ -1,4 +1,5 @@
 import hashlib
+import os
 import time
 import zipfile
 from concurrent.futures import thread
@@ -6,9 +7,9 @@ import _thread
 
 import requests
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QStringListModel, QThread, pyqtSignal, QAbstractTableModel, QModelIndex, Qt
+from PyQt5.QtCore import QStringListModel, QThread, pyqtSignal, QAbstractTableModel, QModelIndex, Qt, QCoreApplication
 from PyQt5.QtGui import QStandardItemModel, QCursor
-from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QToolTip, QMenu
+from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QToolTip, QMenu, QDialog, QPushButton, QLabel
 
 import BaiDuTranslate
 from test import Ui_MainWindow
@@ -52,6 +53,37 @@ class TranslateThread(QThread):
             dst = BaiDuTranslate.getTranslateValue(self.values[index], toLanguage=self.toLanguage)
             self._signal.emit(index, dst)
         self._signal.emit(-1, '')
+
+    def stop(self):
+        self.isStop = True
+
+
+class PackageThread(QThread):
+    _signal = pyqtSignal(int, int)
+
+    def __init__(self, filePath):
+        super(PackageThread, self).__init__()
+        self.filePath = filePath
+        self.isStop = False
+
+    def run(self):
+        file_new = self.filePath + "_new.jar"
+        zNew = zipfile.ZipFile(file_new, 'w', zipfile.ZIP_DEFLATED)
+        count = 0
+        for dirpath, dirnames, filenames in os.walk(self.filePath):  # os.walk 遍历目录
+            for filename in filenames:
+                count = count + 1
+        indexFile = 0
+        for dirpath, dirnames, filenames in os.walk(self.filePath):  # os.walk 遍历目录
+            fpath = dirpath.replace(self.filePath, '')  # 这一句很重要，不replace的话，就从根目录开始复制
+            fpath = fpath and fpath + os.sep or ''  # os.sep路径分隔符
+            for filename in filenames:
+                if self.isStop:
+                    break
+                zNew.write(os.path.join(dirpath, filename), fpath + filename)
+                self._signal.emit(indexFile, count)
+                indexFile = indexFile + 1
+        self._signal.emit(-1, count)
 
     def stop(self):
         self.isStop = True
@@ -160,6 +192,8 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.propertiesFileNameList = []
         self.isExtractDone = False
         self.isTranslateDone = False
+        self.isPackageDone = False
+        self.isSaveProperties = False
         self.threadTranslate = None
         self.props = None
         self.language = [
@@ -208,6 +242,10 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
             Qt.CustomContextMenu)  # 右键菜单，如果不设为CustomContextMenu,无法使用customContextMenuRequested
         self.tableView_kv.customContextMenuRequested.connect(self.showContextMenu)
         self.pushButton_save.clicked.connect(self.saveProperties)
+        self.action_exit.triggered.connect(QCoreApplication.quit)
+        self.action_package.triggered.connect(self.actionPackageHandler)
+        self.action_git.triggered.connect(self.actionGitHandler)
+        self.action_about.triggered.connect(self.actionAboutHandler)
 
     # 选择语言包
     def selectLanguagePack(self):
@@ -301,6 +339,33 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         actionReset.triggered.connect(self.actionResetHandler)
         self.tableView_kv.contextMenu.show()
 
+    def actionPackageHandler(self):
+        if bool(1 - (self.isExtractDone & self.isTranslateDone & self.isSaveProperties)):
+            self.setMsg('未做修改')
+            return
+        self.setMsg('打包中...')
+        self.progressBar.setMinimum(0)
+        # 创建线程
+        self.threadPackage = PackageThread(self.filePath)
+        # 连接信号
+        self.threadPackage._signal.connect(self.callBackPackage)
+        # 开始线程
+        self.threadPackage.start()
+
+    def actionGitHandler(self):
+        QtGui.QDesktopServices.openUrl(
+            QtCore.QUrl('https://github.com/AndroidStudioTranslate/Android-Studio-Translate-Tool-Python'))
+
+    def actionAboutHandler(self):
+        aboutDialog = QDialog()
+        aboutDialog.setWindowTitle("关于")
+        # 设置窗口的属性为ApplicationModal模态，用户只有关闭弹窗后，才能关闭主界面
+        aboutDialog.setWindowModality(Qt.ApplicationModal)
+        aboutDialog.setFixedSize(500, 100)
+        aboutMsg = '本软件用于对Android Studio进行语言包翻译\nBy Wellchang\nhttps://github.com/AndroidStudioTranslate/Android-Studio-Translate-Tool-Python\n2019/03/22'
+        aboutLabel = QLabel(aboutMsg, aboutDialog)
+        aboutDialog.exec()
+
     def actionTranslateHandler(self):
         qModelIndex = self.tableView_kv.currentIndex()
         row = qModelIndex.row()
@@ -321,8 +386,9 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.props.values.clear()
         self.props.keys = self.tableView_kv.model().keys
         self.props.values = self.tableView_kv.model().translateValues
-        self.props.saveKV()
+        self.props.saveKV(True)
         self.setMsg('保存完毕!', 1)
+        self.isSaveProperties = True
 
     def setMsg(self, msg, index=0):
         msgColor = 'black'
@@ -353,6 +419,15 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
             qModelIndex = self.tableView_kv.model().index(index, 2, QModelIndex())
             self.updateTableViewData(qModelIndex, value)
             self.tableView_kv.scrollTo(qModelIndex)
+
+    def callBackPackage(self, index, total):
+        if index == -1:
+            self.isPackageDone = True
+            self.setMsg("打包完成", 1)
+            print("打包完成")
+        else:
+            self.progressBar.setMaximum(total)
+            self.progressBar.setValue(index + 1)
 
 
 if __name__ == "__main__":

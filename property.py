@@ -6,6 +6,8 @@ import re
 import os
 import tempfile
 
+from idna import unicode
+
 
 class Properties:
     values = []
@@ -44,19 +46,24 @@ class Properties:
     def set(self, key, value):
         self.properties[key] = value
 
-    def save(self):
+    def save(self, isUnicode=False):
         content = ''
         for k, v in self.properties.items():
-            content = content + k + "=" + v + "\n"
+            value = str(v)
+            if isUnicode & ("\\u" not in value):
+                value = str(value.encode("unicode_escape"), 'utf-8')
+            content = content + k + "=" + value + "\n"
         content = content.strip('\n')
         self.saveFile(content)
 
-    def saveKV(self):
+    def saveKV(self, isUnicode=False):
         content = ''
         keyLens = len(self.keys)
         for index in range(keyLens):
             key = self.keys[index]
             value = self.values[index]
+            if isUnicode & ("\\u" not in value):
+                value = str(value.encode("unicode_escape"), 'utf-8')
             content = content + key + "=" + value + "\n"
         content = content.strip('\n')
         self.saveFile(content)
