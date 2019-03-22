@@ -16,10 +16,145 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="7">
-     <widget class="QComboBox" name="comboBox">
+     <widget class="QComboBox" name="comboBox_translate">
       <item>
        <property name="text">
         <string>中文</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>繁体中文</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>英语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>粤语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>文言文</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>日语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>韩语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>法语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>西班牙语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>泰语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>阿拉伯语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>俄语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>葡萄牙语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>德语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>意大利语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>希腊语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>荷兰语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>波兰语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>保加利亚语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>爱沙尼亚语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>丹麦语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>芬兰语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>捷克语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>罗马尼亚语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>斯洛文尼亚语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>瑞典语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>匈牙利语</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>越南语</string>
        </property>
       </item>
      </widget>
@@ -108,6 +243,12 @@
   <widget class="QStatusBar" name="statusbar">
    <property name="enabled">
     <bool>true</bool>
+   </property>
+   <property name="statusTip">
+    <string/>
+   </property>
+   <property name="whatsThis">
+    <string/>
    </property>
   </widget>
  </widget>
