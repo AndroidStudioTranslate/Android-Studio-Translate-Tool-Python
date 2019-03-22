@@ -119,6 +119,7 @@ class KVModel(QAbstractTableModel):
             if col == len(self.headers) - 1:
                 self.beginResetModel()
                 self.datas[index.row()][col] = value
+                self.translateValues[index.row()] = value
                 self.endResetModel()
                 return True
         return False
@@ -159,21 +160,23 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.isExtractDone = False
         self.isTranslateDone = False
         self.threadTranslate = None
+        self.props = None
         self.setupUi(self)
-        self.pushButton.clicked.connect(self.selectLanguagePack)
-        self.listView.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁用双击编辑
-        self.listView.clicked.connect(self.itemClick)  # 单击事件
-        self.listView.doubleClicked.connect(self.itemDoubleClick)  # 双击事件
+        self.pushButton_browser.clicked.connect(self.selectLanguagePack)
+        self.listView_file.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁用双击编辑
+        self.listView_file.clicked.connect(self.itemClick)  # 单击事件
+        self.listView_file.doubleClicked.connect(self.itemDoubleClick)  # 双击事件
         self.msgLabel = QtWidgets.QLabel(self.statusbar)
         self.statusbar.addWidget(self.msgLabel)
-        self.tableView.horizontalHeader().setStretchLastSection(True)  # 设置最后一列填满表格剩余空间
-        self.tableView.setItemDelegateForColumn(0, EmptyDelegate(self))  # 设置第一列不可编辑
-        self.tableView.setItemDelegateForColumn(1, EmptyDelegate(self))  # 设置第二列不可编辑
-        self.tableView.doubleClicked['QModelIndex'].connect(self.tableViewDoubleClick)
-        self.tableView.clicked['QModelIndex'].connect(self.tableViewClick)
-        self.tableView.setContextMenuPolicy(
+        self.tableView_kv.horizontalHeader().setStretchLastSection(True)  # 设置最后一列填满表格剩余空间
+        self.tableView_kv.setItemDelegateForColumn(0, EmptyDelegate(self))  # 设置第一列不可编辑
+        self.tableView_kv.setItemDelegateForColumn(1, EmptyDelegate(self))  # 设置第二列不可编辑
+        self.tableView_kv.doubleClicked['QModelIndex'].connect(self.tableViewDoubleClick)
+        self.tableView_kv.clicked['QModelIndex'].connect(self.tableViewClick)
+        self.tableView_kv.setContextMenuPolicy(
             Qt.CustomContextMenu)  # 右键菜单，如果不设为CustomContextMenu,无法使用customContextMenuRequested
-        self.tableView.customContextMenuRequested.connect(self.showContextMenu)
+        self.tableView_kv.customContextMenuRequested.connect(self.showContextMenu)
+        self.pushButton_save.clicked.connect(self.saveProperties)
 
     # 选择语言包
     def selectLanguagePack(self):
@@ -181,8 +184,8 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                                                    "选择语言包文件",
                                                                    "./",
                                                                    "语言包 (*.jar)")
-        self.lineEdit.setText(self.fileName)
-        self.lineEdit.setToolTip(self.fileName)
+        self.lineEdit_browser.setText(self.fileName)
+        self.lineEdit_browser.setToolTip(self.fileName)
         self.filePath = self.fileName.replace('.jar', '')
         fileNameLens = len(self.fileName)
         if fileNameLens == 0:
@@ -192,13 +195,12 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.propertiesFileNameList = [element for element in self.fileNameList if element.endswith('.properties')]
         slm = QStringListModel()
         slm.setStringList(self.propertiesFileNameList)
-        self.listView.setModel(slm)
+        self.listView_file.setModel(slm)
         self.isExtractDone = False
         self.setMsg("读取文件中...")
         lens = len(self.fileNameList)
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(lens)
-        # _thread.start_new_thread(self.extractFile, (fz,))
         # 创建线程
         self.thread = MyThread(fz, self.filePath)
         # 连接信号
@@ -206,46 +208,33 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # 开始线程
         self.thread.start()
 
-    def extractFile(self, fz):
-        index = 0
-        lens = len(self.fileNameList)
-        # self.progressBar.setMinimum(0)
-        # self.progressBar.setMaximum(lens)
-        for file in self.fileNameList:
-            fz.extract(file, self.filePath)
-            index = index + 1
-            # self.progressBar.setValue(index)
-        self.isExtractDone = True
-        self.setMsg("读取文件完成", 1)
-        print("读取文件完成")
-
     def itemClick(self, qModelIndex):
         if self.isExtractDone:
             fileName = self.propertiesFileNameList[qModelIndex.row()]
-            self.lineEdit_2.setText(fileName)
-            self.lineEdit_2.setToolTip(fileName)
+            self.lineEdit_watch.setText(fileName)
+            self.lineEdit_watch.setToolTip(fileName)
         else:
             self.setMsg("读取文件未完成")
 
     def itemDoubleClick(self, qModelIndex):
         if self.isExtractDone:
             fileName = self.propertiesFileNameList[qModelIndex.row()]
-            self.lineEdit_2.setText(fileName)
-            self.lineEdit_2.setToolTip(fileName)
+            self.lineEdit_watch.setText(fileName)
+            self.lineEdit_watch.setToolTip(fileName)
             self.keys.clear()
             self.values.clear()
             filePath = self.filePath + '\\' + fileName
             print(filePath)
-            props = property.parse(filePath)
-            self.keys = props.keys
-            self.values = props.values
+            self.props = property.parse(filePath)
+            self.keys = self.props.keys.copy()
+            self.values = self.props.values.copy()
             self.translateValues = self.values.copy()
             keyLens = len(self.keys)
             print(keyLens)
-            self.tableView.setModel(KVModel(self.keys, self.values, self.translateValues))
+            self.tableView_kv.setModel(KVModel(self.keys, self.values, self.translateValues))
             self.progressBar.setMinimum(0)
             self.progressBar.setMaximum(keyLens)
-            if self.checkBox.isChecked():
+            if self.checkBox_translate.isChecked():
                 if self.threadTranslate is not None:
                     self.threadTranslate.stop()
                     self.threadTranslate.quit()
@@ -265,34 +254,41 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tableViewDoubleClick(qModelIndex)
 
     def tableViewDoubleClick(self, qModelIndex):
-        self.tableView.edit(qModelIndex)
+        self.tableView_kv.edit(qModelIndex)
         row = qModelIndex.row()
         self.label.setText(self.values[row])
 
     def showContextMenu(self):
-        self.tableView.contextMenu = QMenu(self)
-        actionTranslate = self.tableView.contextMenu.addAction(u'翻译')
-        actionReset = self.tableView.contextMenu.addAction(u'重置')
-        self.tableView.contextMenu.popup(QCursor.pos())  # 2菜单显示的位置
+        self.tableView_kv.contextMenu = QMenu(self)
+        actionTranslate = self.tableView_kv.contextMenu.addAction(u'翻译')
+        actionReset = self.tableView_kv.contextMenu.addAction(u'重置')
+        self.tableView_kv.contextMenu.popup(QCursor.pos())  # 2菜单显示的位置
         actionTranslate.triggered.connect(self.actionTranslateHandler)
         actionReset.triggered.connect(self.actionResetHandler)
-        self.tableView.contextMenu.show()
+        self.tableView_kv.contextMenu.show()
 
     def actionTranslateHandler(self):
-        qModelIndex = self.tableView.currentIndex()
+        qModelIndex = self.tableView_kv.currentIndex()
         row = qModelIndex.row()
         dst = BaiDuTranslate.getTranslateValue(self.values[row])
         self.translateValues[row] = dst
-        # self.tableView.setModel(KVModel(self.keys, self.values, self.translateValues))
         self.updateTableViewData(qModelIndex, dst)
 
     def actionResetHandler(self):
-        qModelIndex = self.tableView.currentIndex()
+        qModelIndex = self.tableView_kv.currentIndex()
         row = qModelIndex.row()
         self.updateTableViewData(qModelIndex, self.values[row])
 
     def updateTableViewData(self, qModelIndex, value):
-        self.tableView.model().setData(qModelIndex, value)
+        self.tableView_kv.model().setData(qModelIndex, value)
+
+    def saveProperties(self):
+        self.props.keys.clear()
+        self.props.values.clear()
+        self.props.keys = self.tableView_kv.model().keys
+        self.props.values = self.tableView_kv.model().translateValues
+        self.props.saveKV()
+        self.setMsg('保存完毕!', 1)
 
     def setMsg(self, msg, index=0):
         msgColor = 'black'
@@ -320,11 +316,9 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
             print("翻译完成")
         else:
             self.progressBar.setValue(index + 1)
-            qModelIndex = self.tableView.model().index(index, 2, QModelIndex())
-            print(index, end='', flush=True)
-            print('>' + value)
+            qModelIndex = self.tableView_kv.model().index(index, 2, QModelIndex())
             self.updateTableViewData(qModelIndex, value)
-            self.tableView.scrollTo(qModelIndex)
+            self.tableView_kv.scrollTo(qModelIndex)
 
 
 if __name__ == "__main__":

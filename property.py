@@ -43,15 +43,29 @@ class Properties:
 
     def set(self, key, value):
         self.properties[key] = value
-    
+
     def save(self):
         content = ''
-        for k,v in self.properties.items():
+        for k, v in self.properties.items():
             content = content + k + "=" + v + "\n"
         content = content.strip('\n')
+        self.saveFile(content)
+
+    def saveKV(self):
+        content = ''
+        keyLens = len(self.keys)
+        for index in range(keyLens):
+            key = self.keys[index]
+            value = self.values[index]
+            content = content + key + "=" + value + "\n"
+        content = content.strip('\n')
+        self.saveFile(content)
+
+    def saveFile(self, content):
         s_open = open(self.file_name, 'w')
         s_open.write(content)  # 将内容写入原文件
         s_open.close()
+
 
 def parse(file_name):
     return Properties(file_name)
