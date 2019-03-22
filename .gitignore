@@ -1,1 +1,7 @@
 /config.properties
+.idea/
+AndroidStudioTraslateTools.spec
+__pycache__/
+build/
+dist/
+venv/
