@@ -118,7 +118,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Android Studio翻译工具 By Wellchang"))
         self.comboBox_translate.setItemText(0, _translate("MainWindow", "中文"))
         self.comboBox_translate.setItemText(1, _translate("MainWindow", "繁体中文"))
         self.comboBox_translate.setItemText(2, _translate("MainWindow", "英语"))
