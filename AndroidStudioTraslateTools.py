@@ -38,9 +38,10 @@ class MyThread(QThread):
 class TranslateThread(QThread):
     _signal = pyqtSignal(int, str)
 
-    def __init__(self, values):
+    def __init__(self, values, toLanguage):
         super(TranslateThread, self).__init__()
         self.values = values
+        self.toLanguage = toLanguage
         self.isStop = False
 
     def run(self):
@@ -48,7 +49,7 @@ class TranslateThread(QThread):
         for index in range(valueLens):
             if self.isStop:
                 break
-            dst = BaiDuTranslate.getTranslateValue(self.values[index])
+            dst = BaiDuTranslate.getTranslateValue(self.values[index], toLanguage=self.toLanguage)
             self._signal.emit(index, dst)
         self._signal.emit(-1, '')
 
@@ -161,6 +162,36 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.isTranslateDone = False
         self.threadTranslate = None
         self.props = None
+        self.language = [
+            "zh",
+            "cht",
+            "en",
+            "yue",
+            "wyw",
+            "jp",
+            "kor",
+            "fra",
+            "spa",
+            "th",
+            "ara",
+            "ru",
+            "pt",
+            "de",
+            "it",
+            "el",
+            "nl",
+            "pl",
+            "bul",
+            "est",
+            "dan",
+            "fin",
+            "cs",
+            "rom",
+            "slo",
+            "swe",
+            "hu",
+            "vie"
+        ]
         self.setupUi(self)
         self.pushButton_browser.clicked.connect(self.selectLanguagePack)
         self.listView_file.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁用双击编辑
@@ -242,13 +273,16 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.threadTranslate = None
                 self.setMsg("正在翻译...")
                 # 创建线程
-                self.threadTranslate = TranslateThread(self.values)
+                self.threadTranslate = TranslateThread(self.values, self.getToLanguage())
                 # 连接信号
                 self.threadTranslate._signal.connect(self.callBackTranslate)
                 # 开始线程
                 self.threadTranslate.start()
         else:
             self.setMsg("读取文件未完成")
+
+    def getToLanguage(self):
+        return self.language[self.comboBox_translate.currentIndex()]
 
     def tableViewClick(self, qModelIndex):
         self.tableViewDoubleClick(qModelIndex)
@@ -270,7 +304,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def actionTranslateHandler(self):
         qModelIndex = self.tableView_kv.currentIndex()
         row = qModelIndex.row()
-        dst = BaiDuTranslate.getTranslateValue(self.values[row])
+        dst = BaiDuTranslate.getTranslateValue(self.values[row], toLanguage=self.getToLanguage())
         self.translateValues[row] = dst
         self.updateTableViewData(qModelIndex, dst)
 
