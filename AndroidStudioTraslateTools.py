@@ -9,9 +9,11 @@ import requests
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QStringListModel, QThread, pyqtSignal, QAbstractTableModel, QModelIndex, Qt, QCoreApplication
 from PyQt5.QtGui import QStandardItemModel, QCursor
-from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QToolTip, QMenu, QDialog, QPushButton, QLabel
+from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QToolTip, QMenu, QDialog, QPushButton, \
+    QLabel, QMessageBox
 
 import BaiDuTranslate
+from BaiduConfigDialog import Ui_Dialog
 from test import Ui_MainWindow
 import property
 
@@ -179,6 +181,29 @@ class KVModel(QAbstractTableModel):
         return True
 
 
+class BaiduTranslateDialog(QtWidgets.QDialog, Ui_Dialog):
+    def __init__(self):
+        super(BaiduTranslateDialog, self).__init__()
+        self.setupUi(self)
+        self.pushButton_ok.clicked.connect(self.okClick)
+        self.pushButton_cancel.clicked.connect(self.cancelClick)
+        self.setFixedSize(203, 130)
+
+    def okClick(self):
+        appid = self.lineEdit_appid.text()
+        sk = self.lineEdit_sk.text()
+        if appid.strip() == '' and sk.strip() == '':
+            self.label_tip.setText("请正确输入APP_ID和SECURITY_KEY")
+            return
+        propsConfig = property.parse("config.properties")
+        propsConfig.set("APP_ID")
+        propsConfig.set("SECURITY_KEY")
+        propsConfig.saveKV()
+
+    def cancelClick(self):
+        self.close()
+
+
 class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(mywindow, self).__init__()
@@ -195,6 +220,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.isPackageDone = False
         self.isSaveProperties = False
         self.threadTranslate = None
+        self.baiduConfigDialog = None
         self.props = None
         self.language = [
             "zh",
@@ -246,6 +272,34 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_package.triggered.connect(self.actionPackageHandler)
         self.action_git.triggered.connect(self.actionGitHandler)
         self.action_about.triggered.connect(self.actionAboutHandler)
+        self.isBaiduTranslateConfigValid = False
+        self.checkBaiduConfig()
+
+    def checkBaiduConfig(self):
+        if self.isBaiduTranslateConfigValid:
+            return
+        self.isBaiduConfigExist = os.path.exists("config.properties")
+        if self.isBaiduConfigExist:
+            propBaidu = property.parse("config.properties")
+            appid = propBaidu.get("APP_ID")
+            sk = propBaidu.get('SECURITY_KEY')
+            if appid.strip() == '' or sk.strip() == '':
+                self.isBaiduTranslateConfigValid = False
+            else:
+                self.isBaiduTranslateConfigValid = True
+
+    def showConfigBaiduTranslate(self):
+        if self.baiduConfigDialog == None:
+            self.baiduConfigDialog = BaiduTranslateDialog()
+        self.baiduConfigDialog.show()
+
+    def closeEvent(self, QCloseEvent):
+        if not self.isPackageDone and self.isSaveProperties:
+            res = QMessageBox.question(self, "消息", "还没有打包,是否关闭", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if res == QMessageBox.Yes:
+                QCloseEvent.accept()
+            else:
+                QCloseEvent.ignore()
 
     # 选择语言包
     def selectLanguagePack(self):
@@ -286,6 +340,8 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.setMsg("读取文件未完成")
 
     def itemDoubleClick(self, qModelIndex):
+        self.isSaveProperties = False
+        self.isPackageDone = False
         if self.isExtractDone:
             fileName = self.propertiesFileNameList[qModelIndex.row()]
             self.lineEdit_watch.setText(fileName)
@@ -294,28 +350,36 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.values.clear()
             filePath = self.filePath + '\\' + fileName
             print(filePath)
+            if self.props is not None:
+                self.props.keys.clear()
+                self.props.values.clear()
+                self.props = None
             self.props = property.parse(filePath)
             self.keys = self.props.keys.copy()
             self.values = self.props.values.copy()
             self.translateValues = self.values.copy()
+            self.tableView_kv.setModel(KVModel(self.keys, self.values, self.translateValues))
             keyLens = len(self.keys)
             print(keyLens)
-            self.tableView_kv.setModel(KVModel(self.keys, self.values, self.translateValues))
-            self.progressBar.setMinimum(0)
-            self.progressBar.setMaximum(keyLens)
+            self.checkBaiduConfig()
             if self.checkBox_translate.isChecked():
-                if self.threadTranslate is not None:
-                    self.threadTranslate.stop()
-                    self.threadTranslate.quit()
-                    self.threadTranslate.wait()
-                    self.threadTranslate = None
-                self.setMsg("正在翻译...")
-                # 创建线程
-                self.threadTranslate = TranslateThread(self.values, self.getToLanguage())
-                # 连接信号
-                self.threadTranslate._signal.connect(self.callBackTranslate)
-                # 开始线程
-                self.threadTranslate.start()
+                if self.isBaiduTranslateConfigValid:
+                    self.progressBar.setMinimum(0)
+                    self.progressBar.setMaximum(keyLens)
+                    if self.threadTranslate is not None:
+                        self.threadTranslate.stop()
+                        self.threadTranslate.quit()
+                        self.threadTranslate.wait()
+                        self.threadTranslate = None
+                    self.setMsg("正在翻译...")
+                    # 创建线程
+                    self.threadTranslate = TranslateThread(self.values, self.getToLanguage())
+                    # 连接信号
+                    self.threadTranslate._signal.connect(self.callBackTranslate)
+                    # 开始线程
+                    self.threadTranslate.start()
+                else:
+                    self.showConfigBaiduTranslate()
         else:
             self.setMsg("读取文件未完成")
 
@@ -369,9 +433,13 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def actionTranslateHandler(self):
         qModelIndex = self.tableView_kv.currentIndex()
         row = qModelIndex.row()
-        dst = BaiDuTranslate.getTranslateValue(self.values[row], toLanguage=self.getToLanguage())
-        self.translateValues[row] = dst
-        self.updateTableViewData(qModelIndex, dst)
+        self.checkBaiduConfig()
+        if self.isBaiduTranslateConfigValid:
+            dst = BaiDuTranslate.getTranslateValue(self.values[row], toLanguage=self.getToLanguage())
+            self.translateValues[row] = dst
+            self.updateTableViewData(qModelIndex, dst)
+        else:
+            self.showConfigBaiduTranslate()
 
     def actionResetHandler(self):
         qModelIndex = self.tableView_kv.currentIndex()
