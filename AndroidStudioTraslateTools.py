@@ -354,7 +354,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.props.keys.clear()
                 self.props.values.clear()
                 self.props = None
-            self.props = property.parse(filePath)
+            self.props = property.parse(filePath, True)
             self.keys = self.props.keys.copy()
             self.values = self.props.values.copy()
             self.translateValues = self.values.copy()

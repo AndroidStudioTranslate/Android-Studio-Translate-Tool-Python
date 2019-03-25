@@ -13,18 +13,25 @@ class Properties:
     values = []
     keys = []
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, isDecodeUnicode=False):
         self.file_name = file_name
+        self.isDecodeUnicode = isDecodeUnicode
         self.properties = {}
         try:
             fopen = open(self.file_name, 'r')
+            self.keys.clear()
+            self.values.clear()
             for line in fopen:
                 line = line.strip()
                 if line.find('=') > 0 and not line.startswith('#'):
                     strs = line.split('=')
-                    self.properties[strs[0].strip()] = strs[1].strip()
+                    if self.isDecodeUnicode:
+                        decodeStr = strs[1].strip().encode('utf-8').decode('unicode_escape')
+                    else:
+                        decodeStr = strs[1].strip()
+                    self.properties[strs[0].strip()] = decodeStr
                     self.keys.append(strs[0].strip())
-                    self.values.append(strs[1].strip())
+                    self.values.append(decodeStr)
         except Exception as e:
             raise e
         else:
@@ -74,8 +81,8 @@ class Properties:
         s_open.close()
 
 
-def parse(file_name):
-    return Properties(file_name)
+def parse(file_name, isDecodeUnicode=False):
+    return Properties(file_name, isDecodeUnicode)
 
 
 def replace_property(file_name, from_regex, to_str, append_on_not_exists=True):
