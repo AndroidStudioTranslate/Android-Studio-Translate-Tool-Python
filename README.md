@@ -4,8 +4,7 @@
 
 注意:请在config.properties中设置自己的APP_ID和SECURITY_KEY
 
-由于上传文件大小限制exe文件放这里: https://pan.baidu.com/s/1EsWHRBk2cPMMPJYSsxHpxg 提取码: i3tw 
-需要新建config.properties文件并设置自己的APP_ID和SECURITY_KEY
+由于上传文件大小限制exe文件放这里: https://pan.baidu.com/s/1F0SffGY9kIe7yU-ChISYfg 提取码: k7w9
 
 如
 ```

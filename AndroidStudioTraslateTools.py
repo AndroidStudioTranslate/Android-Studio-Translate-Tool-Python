@@ -426,7 +426,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # 设置窗口的属性为ApplicationModal模态，用户只有关闭弹窗后，才能关闭主界面
         aboutDialog.setWindowModality(Qt.ApplicationModal)
         aboutDialog.setFixedSize(500, 100)
-        aboutMsg = '本软件用于对Android Studio进行语言包翻译\nBy Wellchang\nhttps://github.com/AndroidStudioTranslate/Android-Studio-Translate-Tool-Python\n2019/03/22'
+        aboutMsg = '本软件用于对Android Studio进行语言包翻译\nBy Wellchang\nhttps://github.com/AndroidStudioTranslate/Android-Studio-Translate-Tool-Python\n2019/03/25'
         aboutLabel = QLabel(aboutMsg, aboutDialog)
         aboutDialog.exec()
 
