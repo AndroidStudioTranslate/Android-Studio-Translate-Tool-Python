@@ -291,6 +291,8 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_package.triggered.connect(self.actionPackageHandler)
         self.action_git.triggered.connect(self.actionGitHandler)
         self.action_about.triggered.connect(self.actionAboutHandler)
+        self.lineEdit_browser.returnPressed.connect(self.readJar)
+        self.lineEdit_watch.returnPressed.connect(self.openFile)
         self.isBaiduTranslateConfigValid = False
         self.checkBaiduConfig()
 
@@ -310,6 +312,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def showConfigBaiduTranslate(self):
         if self.baiduConfigDialog == None:
             self.baiduConfigDialog = BaiduTranslateDialog()
+            self.baiduConfigDialog.setWindowModality(Qt.ApplicationModal)
         self.baiduConfigDialog.show()
 
     def closeEvent(self, QCloseEvent):
@@ -321,8 +324,12 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 QCloseEvent.ignore()
 
     def openFile(self):
+        watchFileName = self.lineEdit_watch.text()
+        if watchFileName.strip() == '':
+            return
         if self.fileViewDialog == None:
-            self.fileViewDialog = FielViewDialog(self.filePath + "/" + self.lineEdit_watch.text())
+            self.fileViewDialog = FielViewDialog(self.filePath + "/" + watchFileName)
+            self.fileViewDialog.setWindowModality(Qt.ApplicationModal)
         self.fileViewDialog.show()
 
     # 选择语言包
@@ -332,6 +339,10 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                                                    "./",
                                                                    "语言包 (*.jar)")
         self.lineEdit_browser.setText(self.fileName)
+        self.readJar()
+
+    def readJar(self):
+        self.fileName = self.lineEdit_browser.text()
         self.lineEdit_browser.setToolTip(self.fileName)
         self.filePath = self.fileName.replace('.jar', '')
         fileNameLens = len(self.fileName)
@@ -474,6 +485,8 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.checkBaiduConfig()
         if self.isBaiduTranslateConfigValid:
             dst = BaiDuTranslate.getTranslateValue(self.values[row], toLanguage=self.getToLanguage())
+            if '{\'error_code\':' in dst:
+                self.setMsg(dst)
             self.translateValues[row] = dst
             self.updateTableViewData(qModelIndex, dst)
         else:
@@ -525,6 +538,9 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
             qModelIndex = self.tableView_kv.model().index(index, 2, QModelIndex())
             self.updateTableViewData(qModelIndex, value)
             self.tableView_kv.scrollTo(qModelIndex)
+            if '{\'error_code\':' in value:
+                self.setMsg(value)
+                self.threadTranslate.stop()
 
     def callBackPackage(self, index, total):
         if index == -1:

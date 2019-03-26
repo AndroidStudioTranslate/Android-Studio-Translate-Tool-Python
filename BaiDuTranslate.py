@@ -22,8 +22,14 @@ def translate(query, fromLanguage='auto', toLanguage='zh'):
                                      'salt': salt,
                                      'sign': m2.hexdigest()
                                  })
-    return responseBaidu.json()
+    json = responseBaidu.json()
+    print(json)
+    return json
 
 
 def getTranslateValue(query, fromLanguage='auto', toLanguage='zh'):
-    return translate(query, fromLanguage, toLanguage)['trans_result'][0]['dst']
+    res = translate(query, fromLanguage, toLanguage)
+    if 'error_code' in res:
+        return str(res)
+    else:
+        return res['trans_result'][0]['dst']
