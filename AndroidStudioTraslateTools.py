@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QTool
     QLabel, QMessageBox
 
 import BaiDuTranslate
+import fileView
 from BaiduConfigDialog import Ui_Dialog
 from test import Ui_MainWindow
 import property
@@ -182,6 +183,21 @@ class KVModel(QAbstractTableModel):
         return True
 
 
+class FielViewDialog(QtWidgets.QDialog, fileView.Ui_Dialog):
+    def __init__(self, fileName):
+        super(FielViewDialog, self).__init__()
+        self.fileName = fileName
+        self.setupUi(self)
+        self.pushButton_update.clicked.connect(self.updateClick)
+        fopen = open(self.fileName, 'r')
+        self.textEdit_view.setText(fopen.read())
+
+    def updateClick(self):
+        s_open = open(self.fileName, 'w')
+        s_open.write(self.textEdit_view.text())  # 将内容写入原文件
+        s_open.close()
+
+
 class BaiduTranslateDialog(QtWidgets.QDialog, Ui_Dialog):
     def __init__(self):
         super(BaiduTranslateDialog, self).__init__()
@@ -222,6 +238,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.isSaveProperties = False
         self.threadTranslate = None
         self.baiduConfigDialog = None
+        self.fileViewDialog = None
         self.props = None
         self.language = [
             "zh",
@@ -255,6 +272,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         ]
         self.setupUi(self)
         self.pushButton_browser.clicked.connect(self.selectLanguagePack)
+        self.pushButton_watch.clicked.connect(self.openFile)
         self.listView_file.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁用双击编辑
         self.listView_file.clicked.connect(self.itemClick)  # 单击事件
         self.listView_file.doubleClicked.connect(self.itemDoubleClick)  # 双击事件
@@ -301,6 +319,11 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 QCloseEvent.accept()
             else:
                 QCloseEvent.ignore()
+
+    def openFile(self):
+        if self.fileViewDialog == None:
+            self.fileViewDialog = FielViewDialog(self.filePath + "/" + self.lineEdit_watch.text())
+        self.fileViewDialog.show()
 
     # 选择语言包
     def selectLanguagePack(self):
@@ -412,7 +435,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         qModelIndex = self.tableView_kv.currentIndex()
         row = qModelIndex.row()
         col = qModelIndex.column()
-        if col<2:
+        if col < 2:
             copyStr = self.values[row]
         else:
             copyStr = self.translateValues[row]

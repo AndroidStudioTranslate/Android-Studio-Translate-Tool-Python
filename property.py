@@ -25,15 +25,20 @@ class Properties:
                 line = line.strip()
                 if line.find('=') > 0 and not line.startswith('#'):
                     strs = line.split('=')
-                    if self.isDecodeUnicode:
-                        decodeStr = strs[1].strip().encode('utf-8').decode('unicode_escape')
-                    else:
+                    try:
+                        if self.isDecodeUnicode:
+                            decodeStr = strs[1].strip().encode('utf-8').decode('unicode_escape')
+                        else:
+                            decodeStr = strs[1].strip()
+                    except Exception as e:
                         decodeStr = strs[1].strip()
+                        print(e)
+                        print(decodeStr)
                     self.properties[strs[0].strip()] = decodeStr
                     self.keys.append(strs[0].strip())
                     self.values.append(decodeStr)
         except Exception as e:
-            raise e
+            print(e)
         else:
             fopen.close()
 
