@@ -5,6 +5,7 @@ import zipfile
 from concurrent.futures import thread
 import _thread
 
+import pyperclip
 import requests
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QStringListModel, QThread, pyqtSignal, QAbstractTableModel, QModelIndex, Qt, QCoreApplication
@@ -393,15 +394,29 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tableView_kv.edit(qModelIndex)
         row = qModelIndex.row()
         self.label.setText(self.values[row])
+        copyStr = self.translateValues[row]
+        pyperclip.copy(copyStr)
 
     def showContextMenu(self):
         self.tableView_kv.contextMenu = QMenu(self)
         actionTranslate = self.tableView_kv.contextMenu.addAction(u'翻译')
+        actionCopy = self.tableView_kv.contextMenu.addAction(u'复制')
         actionReset = self.tableView_kv.contextMenu.addAction(u'重置')
         self.tableView_kv.contextMenu.popup(QCursor.pos())  # 2菜单显示的位置
         actionTranslate.triggered.connect(self.actionTranslateHandler)
+        actionCopy.triggered.connect(self.actionCopyHandler)
         actionReset.triggered.connect(self.actionResetHandler)
         self.tableView_kv.contextMenu.show()
+
+    def actionCopyHandler(self):
+        qModelIndex = self.tableView_kv.currentIndex()
+        row = qModelIndex.row()
+        col = qModelIndex.column()
+        if col<2:
+            copyStr = self.values[row]
+        else:
+            copyStr = self.translateValues[row]
+        pyperclip.copy(copyStr)
 
     def actionPackageHandler(self):
         if bool(1 - (self.isExtractDone & self.isTranslateDone & self.isSaveProperties)):
