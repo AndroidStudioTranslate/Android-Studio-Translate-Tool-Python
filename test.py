@@ -54,10 +54,6 @@ class Ui_MainWindow(object):
         self.pushButton_watch = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_watch.setObjectName("pushButton_watch")
         self.gridLayout.addWidget(self.pushButton_watch, 0, 5, 1, 1)
-        self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
-        self.progressBar.setProperty("value", 0)
-        self.progressBar.setObjectName("progressBar")
-        self.gridLayout.addWidget(self.progressBar, 3, 0, 1, 1)
         self.lineEdit_watch = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit_watch.setToolTip("")
         self.lineEdit_watch.setObjectName("lineEdit_watch")
@@ -82,6 +78,10 @@ class Ui_MainWindow(object):
         self.label.setText("")
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 2, 0, 1, 8)
+        self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setObjectName("progressBar")
+        self.gridLayout.addWidget(self.progressBar, 3, 0, 1, 7)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 657, 23))
@@ -118,7 +118,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Android Studio翻译工具 By Wellchang"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Android Studio翻译工具"))
         self.comboBox_translate.setItemText(0, _translate("MainWindow", "中文"))
         self.comboBox_translate.setItemText(1, _translate("MainWindow", "繁体中文"))
         self.comboBox_translate.setItemText(2, _translate("MainWindow", "英语"))
@@ -153,6 +153,7 @@ class Ui_MainWindow(object):
         self.pushButton_save.setText(_translate("MainWindow", "保存当前文件"))
         self.lineEdit_browser.setPlaceholderText(_translate("MainWindow", "选择汉化文件"))
         self.pushButton_browser.setText(_translate("MainWindow", "浏览"))
+        self.progressBar.setFormat(_translate("MainWindow", "%v/%m"))
         self.menu1.setTitle(_translate("MainWindow", "文件"))
         self.menu.setTitle(_translate("MainWindow", "帮助"))
         self.action_package.setText(_translate("MainWindow", "打包"))
