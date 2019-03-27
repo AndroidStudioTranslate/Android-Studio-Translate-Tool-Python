@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Android Studio翻译工具</string>
+   <string>Android Studio翻译工具 By Wellchang</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -226,7 +226,7 @@
        <number>0</number>
       </property>
       <property name="format">
-       <string>%p/%m%</string>
+       <string>%v/%m</string>
       </property>
      </widget>
     </item>
