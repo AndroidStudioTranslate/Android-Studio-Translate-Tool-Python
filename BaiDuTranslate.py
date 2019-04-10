@@ -13,7 +13,8 @@ def translate(query, fromLanguage='auto', toLanguage='zh'):
     src = appid + query + str(salt) + sk
     m2 = hashlib.md5()
     m2.update(src.encode('utf-8'))
-    responseBaidu = requests.get(urlBaiduTranslate,
+    try:
+        responseBaidu = requests.get(urlBaiduTranslate,
                                  {
                                      'q': query,
                                      'from': fromLanguage,
@@ -22,8 +23,12 @@ def translate(query, fromLanguage='auto', toLanguage='zh'):
                                      'salt': salt,
                                      'sign': m2.hexdigest()
                                  })
-    json = responseBaidu.json()
-    print(json)
+        json = responseBaidu.json()
+        print(json)
+    except Exception as err:
+        print('Error Msg')
+        print(err)
+        return '错误:' + str(err)
     return json
 
 

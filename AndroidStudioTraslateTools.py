@@ -51,12 +51,18 @@ class TranslateThread(QThread):
 
     def run(self):
         valueLens = len(self.values)
+        print("将翻译" + str(valueLens) + "条")
+        errorCode = -1
+        errorMsg = '翻译完成'
         for index in range(valueLens):
             if self.isStop:
+                errorCode = -2
+                errorMsg = '翻译中断'
                 break
+            print(index)
             dst = BaiDuTranslate.getTranslateValue(self.values[index], toLanguage=self.toLanguage)
             self._signal.emit(index, dst)
-        self._signal.emit(-1, '')
+        self._signal.emit(errorCode, errorMsg)
 
     def stop(self):
         self.isStop = True
@@ -531,8 +537,10 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def callBackTranslate(self, index, value):
         if index == -1:
             self.isTranslateDone = True
-            self.setMsg("翻译完成", 1)
-            print("翻译完成")
+            self.setMsg(value, 1)
+            print(value)
+        elif index == -2:
+            print(value)
         else:
             self.progressBar.setValue(index + 1)
             qModelIndex = self.tableView_kv.model().index(index, 2, QModelIndex())
@@ -540,7 +548,7 @@ class mywindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.tableView_kv.scrollTo(qModelIndex)
             if '{\'error_code\':' in value:
                 self.setMsg(value)
-                self.threadTranslate.stop()
+                # self.threadTranslate.stop()
 
     def callBackPackage(self, index, total):
         if index == -1:
