@@ -1,5 +1,7 @@
 import hashlib
 import time
+import traceback
+
 import requests
 import property
 
@@ -26,11 +28,10 @@ def translate(query, fromLanguage='auto', toLanguage='zh'):
         json = responseBaidu.json()
         print(json)
     except Exception as err:
-        print('Error Msg')
-        print(err)
         s_open = open('log.txt', 'a+')
         s_open.write("\n\n" + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + "\n" + str(err) + "\n")
         s_open.close()
+        traceback.print_exc(file=open('log.txt', 'a+'))
         return '错误:' + str(err)
     return json
 
